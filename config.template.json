@@ -1,0 +1,40 @@
+{
+    "llm": {
+        "protocol": "openai",
+        "api_key": "your-api-key-here",
+        "base_url": "",
+        "default_model": "deepseek-v4-flash",
+        "default_temperature": 0.9,
+        "default_max_tokens": 8192,
+        "is_enable_thinking": "enabled",
+        "timeout_seconds": 600,
+        "default_reasoning_effort": "high",
+        "max_context_tokens": 0
+    },
+    "node_llm": {},
+    "features": {
+        "player_choice_enabled": true,
+        "memory_summarize_interval": 10
+    },
+    "embedding": {
+        "model_path": "models/Qwen3-Embedding-0.6B"
+    },
+    "image_generation": {
+        "enabled": false,
+        "comfyui_base_url": "http://127.0.0.1:8188",
+        "checkpoint": "animagine-xl-4.0.safetensors",
+        "width": 896,
+        "height": 1152,
+        "steps": 30,
+        "cfg": 6.0,
+        "sampler_name": "dpmpp_2m",
+        "scheduler": "karras",
+        "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+        "interval_seconds": 180,
+        "max_per_session": 30,
+        "llm_decision_enabled": true,
+        "timeout_seconds": 300,
+        "poll_interval_seconds": 1.0
+    },
+    "system_rules": ""
+}

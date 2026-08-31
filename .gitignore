@@ -1,0 +1,80 @@
+# Dependencies
+node_modules/
+
+# Runtime data
+data/
+chroma_data/
+logs/
+static/
+
+# Error logs (in project root)
+*.log
+
+# Auth token (single-token auth session file, never commit)
+.rpa_token
+
+# AI assistant artifacts
+.omo/
+.workbuddy/
+.zcode/
+
+# Agent / coding harness files (供 agent 使用的项目上下文文件，不入库)
+AGENTS.md
+AGENTS.local.md
+CLAUDE.md
+CLAUDE.local.md
+CODING.md
+CONTEXT.md
+AI.md
+GEMINI.md
+.cursorrules
+.cursor/
+.claude/
+.ai/
+.agent/
+.github/copilot-instructions.md
+
+# Configuration with secrets (root only, not model configs)
+/config.json
+/config.json.bak
+
+# Node-config export artifact (contains user-defined shared system rules)
+# 节点配置导出产物（含用户自定义的共享系统限制，勿提交）
+node_config.json
+
+# Large model files (SentenceTransformer embeddings ~600MB)
+models/
+
+# Temp debug output
+memory_output*.txt
+
+# Environment variables
+.env
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Test cache
+.pytest_cache/
+.pytest_tmp/
+pytest-cache-files-*/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
