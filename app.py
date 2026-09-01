@@ -19,6 +19,15 @@ from fastapi.staticfiles import StaticFiles
 
 from api_error_logger import log_exception
 import auth as auth_module
+from plugin_system import load_plugins
+
+# Plugin loading MUST run before the routers import below: the LangGraph
+# modules compile their builders at import time, and plugins contribute
+# nodes / edges / sub-graphs during that build.
+# / 插件加载必须发生在下方 routers 导入之前：LangGraph 模块在导入时即编译
+#   builder，插件的节点/边/子图正是在该构建阶段注入。
+load_plugins()
+
 from routers import (
     auth_router,
     characters_router,
@@ -90,6 +99,23 @@ app.include_router(config_router)
 app.include_router(misc_router)
 app.include_router(sessions_router)
 app.include_router(worldview_router)
+
+# Plugin routers mount under /api/plugins/<plugin_id> (auth middleware already
+# guards every /api/* path). A listing endpoint exposes what was loaded.
+# / 插件路由挂载到 /api/plugins/<plugin_id>（认证中间件已保护全部 /api/*）。
+#   列表端点暴露已加载的插件及其贡献。
+from plugin_system import registry as _plugin_registry  # noqa: E402
+from routers.deps import ok  # noqa: E402
+
+for _plugin_router, _plugin_prefix in _plugin_registry.routers:
+    app.include_router(_plugin_router, prefix=_plugin_prefix)
+
+
+@app.get("/api/plugins")
+def list_plugins():
+    """Loaded plugins, their graph contributions, pages and load errors.
+    / 已加载插件、其图贡献、前端页面与加载错误。"""
+    return ok(_plugin_registry.as_dict())
 
 # Serve generated scene images (and any other static assets) under /static.
 # The dir is created lazily so a fresh checkout works without manual setup.

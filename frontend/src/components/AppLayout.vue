@@ -2,7 +2,7 @@
     <el-container class="app-layout">
         <el-header class="app-topbar">
             <div class="topbar-left">
-                <span class="logo-mark"><span class="logo-letter">R</span></span>
+                <img :src="logoUrl" class="logo-img" alt="RPA 角色扮演" />
                 <span class="logo-text">RPA 角色扮演</span>
                 <el-menu
                     :ellipsis="false"
@@ -41,6 +41,14 @@
                             ><Setting theme="outline" size="16" fill="currentColor" />配置</span
                         ></el-menu-item
                     >
+                    <!-- Plugin-contributed pages appear dynamically (from /api/plugins).
+                         / 插件贡献页面动态展示（来自 /api/plugins）。 -->
+                    <el-menu-item v-for="page in pluginPages" :key="page.path" :index="page.path"
+                        ><span class="menu-item-inner"
+                            ><component :is="resolvePageIcon(page.icon)" theme="outline" size="16" fill="currentColor" />
+                            {{ page.title }}</span
+                        ></el-menu-item
+                    >
                 </el-menu>
             </div>
             <div class="topbar-right">
@@ -69,6 +77,8 @@ import { useRoute, useRouter } from "vue-router";
 import { Message, People, Avatar, CollectionRecords, FileText, Setting, Caution } from "@icon-park/vue-next";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { clearAll } from "../api/config.js";
+import { pluginPages, resolvePageIcon } from "../plugins/index.js";
+import logoUrl from "../assets/logo.svg";
 
 const route = useRoute();
 const router = useRouter();
@@ -126,22 +136,12 @@ async function handleClearAll() {
     overflow: visible;
     flex: 1;
 }
-.logo-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--brand-500, #5d9eff);
+.logo-img {
+    width: 30px;
+    height: 30px;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(93, 158, 255, 0.4);
-}
-.logo-letter {
-    color: #fff;
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(60, 120, 220, 0.45);
 }
 .logo-text {
     color: #fff;

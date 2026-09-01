@@ -61,6 +61,13 @@ def build_supervisor_graph() -> StateGraph:
     builder.add_edge("director_subgraph", "route_next_supervisor_todo")
     builder.add_edge("general_narration_node", "route_next_supervisor_todo")
 
+    # Plugin contributions (nodes / edges / sub-graphs) are applied last, while
+    # the builder is still mutable. / 插件贡献（节点/边/子图）最后应用——此时
+    # builder 仍可改动。
+    from plugin_system import apply_plugins
+
+    apply_plugins(builder, "supervisor")
+
     return builder
 
 

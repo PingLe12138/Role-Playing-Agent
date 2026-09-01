@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { getSetupStatus } from "../api/setup.js";
+import { ensurePluginPages, installPluginRoutes, pluginPages } from "../plugins/index.js";
 
 const routes = [
     { path: "/", redirect: "/sessions" },
@@ -7,6 +8,7 @@ const routes = [
     { path: "/setup", name: "Setup", component: () => import("../views/SetupWizard.vue") },
     {
         path: "/",
+        name: "AppLayout",
         component: () => import("../components/AppLayout.vue"),
         children: [
             { path: "character-cards", name: "CharacterCards", component: () => import("../views/CharacterCards.vue") },
@@ -60,8 +62,19 @@ router.beforeEach(async (to, from, next) => {
     const bypass = localStorage.getItem("auth_bypass");
     if (!token && bypass !== "true") return next("/login");
     if (to.path === "/setup") return next();
-    if (await ensureSetupChecked()) return next();
-    next("/setup");
+    if (!(await ensureSetupChecked())) return next("/setup");
+    // Plugin pages are added to the route table on first authenticated
+    // navigation. The current navigation was already matched BEFORE the guard
+    // ran, so a direct deep link to an unmounted plugin route needs a
+    // re-navigation after the routes exist.
+    // / 首次认证后导航时将插件页面加入路由表。当前导航在守卫运行前已完成匹配，
+    //   因此直连未挂载的插件路由时需在路由就绪后重新导航一次。
+    await ensurePluginPages();
+    installPluginRoutes(router);
+    if (to.matched.length === 0 && pluginPages.value.some((p) => to.path === p.path)) {
+        return next({ path: to.fullPath, replace: true });
+    }
+    next();
 });
 
 export default router;

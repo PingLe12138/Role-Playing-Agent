@@ -1,0 +1,15 @@
+{
+    "id": "example_hello",
+    "name": "示例插件 Hello",
+    "version": "0.1.0",
+    "description": "演示插件系统的全部接入点：Director 图节点（扇出观测）、Supervisor 挂载子图、REST 端点与前端页面。",
+    "author": "RPA",
+    "entry": "setup",
+    "enabled": true,
+    "frontend": {
+        "path": "/plugins/example-hello",
+        "title": "示例插件",
+        "component": "ui/Index.vue",
+        "icon": "PluginTwo"
+    }
+}

@@ -17,102 +17,107 @@
             </div>
             <input ref="fileInput" type="file" accept=".json" style="display:none" @change="onFileSelected" />
             <el-form :model="form" label-position="top" v-loading="loading" class="config-form">
-                <div class="form-grid">
-                    <el-form-item label="协议">
-                        <el-select v-model="form.protocol" @change="onGlobalProtocolChange">
-                            <el-option label="OpenAI 兼容" value="openai" />
-                            <el-option label="Anthropic" value="anthropic" />
-                        </el-select>
-                        <div class="field-hint">OpenAI 兼容：任意 /v1/chat/completions 端点；Anthropic：官方 /v1/messages 协议</div>
-                    </el-form-item>
-                    <el-form-item label="模型">
-                        <el-input v-model="form.default_model" placeholder="gpt-4o-mini" />
-                    </el-form-item>
-                    <el-form-item label="API Key" class="grid-span-2">
-                        <el-input v-model="form.api_key" type="password" show-password placeholder="sk-..." />
-                    </el-form-item>
-                    <el-form-item label="Base URL" class="grid-span-2">
-                        <el-input v-model="form.base_url" :placeholder="baseUrlPlaceholder" />
-                    </el-form-item>
-                    <el-form-item label="默认温度">
-                        <div class="inline-control">
-                            <el-slider
-                                v-model="form.default_temperature"
-                                :min="0"
-                                :max="2"
-                                :step="0.1"
-                                :disabled="form.is_enable_thinking === 'enabled'"
+                <section class="cfg-block">
+                    <div class="form-grid">
+                        <el-form-item label="协议">
+                            <el-select v-model="form.protocol" @change="onGlobalProtocolChange">
+                                <el-option label="OpenAI 兼容" value="openai" />
+                                <el-option label="Anthropic" value="anthropic" />
+                            </el-select>
+                            <div class="field-hint">OpenAI 兼容：任意 /v1/chat/completions 端点；Anthropic：官方 /v1/messages 协议</div>
+                        </el-form-item>
+                        <el-form-item label="模型">
+                            <el-input v-model="form.default_model" placeholder="gpt-4o-mini" />
+                        </el-form-item>
+                        <el-form-item label="API Key" class="grid-span-2">
+                            <el-input v-model="form.api_key" type="password" show-password placeholder="sk-..." />
+                        </el-form-item>
+                        <el-form-item label="Base URL" class="grid-span-2">
+                            <el-input v-model="form.base_url" :placeholder="baseUrlPlaceholder" />
+                        </el-form-item>
+                        <el-form-item label="默认温度">
+                            <div class="inline-control">
+                                <el-slider
+                                    v-model="form.default_temperature"
+                                    :min="0"
+                                    :max="2"
+                                    :step="0.1"
+                                    :disabled="form.is_enable_thinking === 'enabled'"
+                                />
+                                <span
+                                    class="node-val"
+                                    :class="{ 'node-val-disabled': form.is_enable_thinking === 'enabled' }"
+                                    >{{ form.default_temperature?.toFixed(1) }}</span
+                                >
+                            </div>
+                            <div class="field-hint">思考模式开启时不生效</div>
+                        </el-form-item>
+                        <el-form-item label="默认 Token">
+                            <el-input-number v-model="form.default_max_tokens" :min="256" :step="256" />
+                            <div class="field-hint">节点未单独配置时的兜底上限</div>
+                        </el-form-item>
+                        <el-form-item label="思考模式">
+                            <el-switch
+                                v-model="form.is_enable_thinking"
+                                active-value="enabled"
+                                inactive-value="disabled"
                             />
-                            <span
-                                class="node-val"
-                                :class="{ 'node-val-disabled': form.is_enable_thinking === 'enabled' }"
-                                >{{ form.default_temperature?.toFixed(1) }}</span
+                            <div class="field-hint">开启后忽略温度参数</div>
+                        </el-form-item>
+                        <el-form-item label="思考强度">
+                            <el-select
+                                v-model="form.default_reasoning_effort"
+                                :disabled="form.is_enable_thinking !== 'enabled'"
                             >
-                        </div>
-                        <div class="field-hint">思考模式开启时不生效</div>
-                    </el-form-item>
-                    <el-form-item label="默认 Token">
-                        <el-input-number v-model="form.default_max_tokens" :min="256" :step="256" />
-                        <div class="field-hint">节点未单独配置时的兜底上限</div>
-                    </el-form-item>
-                    <el-form-item label="思考模式">
-                        <el-switch
-                            v-model="form.is_enable_thinking"
-                            active-value="enabled"
-                            inactive-value="disabled"
-                        />
-                        <div class="field-hint">开启后忽略温度参数</div>
-                    </el-form-item>
-                    <el-form-item label="思考强度">
-                        <el-select
-                            v-model="form.default_reasoning_effort"
-                            :disabled="form.is_enable_thinking !== 'enabled'"
-                        >
-                            <el-option label="low（轻度推理，更快更省）" value="low" />
-                            <el-option label="medium（平衡）" value="medium" />
-                            <el-option label="high（增强推理，默认）" value="high" />
-                            <el-option label="max（深度推理，更慢更贵）" value="max" />
-                        </el-select>
-                        <div class="field-hint">仅思考模式开启时生效；medium 在 DeepSeek 上映射为 high</div>
-                    </el-form-item>
-                    <el-form-item label="最大上下文">
-                        <el-input-number v-model="form.max_context_tokens" :min="0" :step="512" />
-                        <div class="field-hint">发送给模型的提示词 token 上限（应用层估算裁剪），0 = 不裁剪</div>
-                    </el-form-item>
-                </div>
+                                <el-option label="low（轻度推理，更快更省）" value="low" />
+                                <el-option label="medium（平衡）" value="medium" />
+                                <el-option label="high（增强推理，默认）" value="high" />
+                                <el-option label="max（深度推理，更慢更贵）" value="max" />
+                            </el-select>
+                            <div class="field-hint">仅思考模式开启时生效；medium 在 DeepSeek 上映射为 high</div>
+                        </el-form-item>
+                        <el-form-item label="最大上下文">
+                            <el-input-number v-model="form.max_context_tokens" :min="0" :step="512" />
+                            <div class="field-hint">发送给模型的提示词 token 上限（应用层估算裁剪），0 = 不裁剪</div>
+                        </el-form-item>
+                    </div>
 
-                <div class="form-actions">
-                    <el-button type="primary" @click="save" :loading="saving" class="config-btn"
-                        ><Save theme="outline" size="14" class="btn-icon" />保存配置</el-button
-                    >
-                    <el-button @click="test" :loading="testing" class="config-btn"
-                        ><Link theme="outline" size="14" class="btn-icon" />测试连接</el-button
-                    >
-                </div>
-                <div class="section-head">
-                    <span class="section-title"
-                        ><Checklist theme="outline" size="15" class="section-icon" />功能开关</span
-                    >
-                    <span class="section-note">以下设置改动后即时保存</span>
-                </div>
-                <div class="form-grid">
-                    <el-form-item label="玩家选择">
-                        <el-switch
-                            v-model="form.features.player_choice_enabled"
-                            @change="saveFeatures"
-                        />
-                        <div class="field-hint">关闭后剧情将不再弹出玩家选择面板</div>
-                    </el-form-item>
-                    <el-form-item label="记忆间隔">
-                        <el-input-number
-                            v-model="form.features.memory_summarize_interval"
-                            :min="1"
-                            :step="1"
-                            @change="saveFeatures"
-                        />
-                        <div class="field-hint">每隔 N 轮对话执行一次角色记忆总结</div>
-                    </el-form-item>
-                </div>
+                    <div class="form-actions">
+                        <el-button type="primary" @click="save" :loading="saving" class="config-btn"
+                            ><Save theme="outline" size="14" class="btn-icon" />保存配置</el-button
+                        >
+                        <el-button @click="test" :loading="testing" class="config-btn"
+                            ><Link theme="outline" size="14" class="btn-icon" />测试连接</el-button
+                        >
+                    </div>
+                </section>
+
+                <section class="cfg-block">
+                    <div class="section-head">
+                        <span class="section-title"
+                            ><Checklist theme="outline" size="15" class="section-icon" />功能开关</span
+                        >
+                        <span class="section-note">以下设置改动后即时保存</span>
+                    </div>
+                    <div class="form-grid">
+                        <el-form-item label="玩家选择">
+                            <el-switch
+                                v-model="form.features.player_choice_enabled"
+                                @change="saveFeatures"
+                            />
+                            <div class="field-hint">关闭后剧情将不再弹出玩家选择面板</div>
+                        </el-form-item>
+                        <el-form-item label="记忆间隔">
+                            <el-input-number
+                                v-model="form.features.memory_summarize_interval"
+                                :min="1"
+                                :step="1"
+                                @change="saveFeatures"
+                            />
+                            <div class="field-hint">每隔 N 轮对话执行一次角色记忆总结</div>
+                        </el-form-item>
+                    </div>
+                </section>
             </el-form>
 
             <div v-if="testResult" :class="['test-result', testResult.success ? 'test-success' : 'test-fail']">
@@ -135,7 +140,7 @@
                     <template #title>
                         <span class="cfg-collapse-title"
                             ><SettingTwo theme="outline" size="15" class="cfg-collapse-icon" />节点参数配置</span
-                        >
+                        ><span class="cfg-collapse-sub">逐节点参数与独立 LLM 接口</span>
                     </template>
                     <p class="collapse-hint">
                         为每个节点单独配置温度、最大 Token、思考模式、思考强度与最大上下文，以及独立的 LLM
@@ -330,7 +335,7 @@
                     <template #title>
                         <span class="cfg-collapse-title"
                             ><Caution theme="outline" size="15" class="cfg-collapse-icon" />系统限制（共享）</span
-                        >
+                        ><span class="cfg-collapse-sub">追加到全部节点提示词末尾</span>
                     </template>
                     <p class="collapse-hint">
                         这段内容会自动追加到所有节点系统提示词的末尾。修改后下次对话生效；仓库不内置任何规则，留空即不追加任何内容。填写后保存在本地
@@ -354,7 +359,7 @@
                     <template #title>
                         <span class="cfg-collapse-title"
                             ><MindMapping theme="outline" size="15" class="cfg-collapse-icon" />上下文注入配置</span
-                        >
+                        ><span class="cfg-collapse-sub">上下文块的选择与顺序</span>
                     </template>
                     <p class="collapse-hint">
                         配置每个节点注入哪些上下文块（对话历史 / 世界观 / 记忆 / 关系 / 情绪等）及顺序。
@@ -412,7 +417,7 @@
                     <template #title>
                         <span class="cfg-collapse-title"
                             ><Camera theme="outline" size="15" class="cfg-collapse-icon" />场景插画配置 (ComfyUI)</span
-                        >
+                        ><span class="cfg-collapse-sub">服务地址、画面与生成节奏</span>
                     </template>
                     <p class="collapse-hint">
                         ComfyUI 为独立服务，请自行启动后在此配置服务地址；插画关闭或服务离线时不会影响叙事流程。
@@ -601,7 +606,13 @@
         </div>
         <div class="config-right page-card" style="align-self: flex-start; flex: 1">
             <div class="page-header">
-                <h2>图结构</h2>
+                <div class="page-title-block">
+                    <span class="page-title-icon"><Share theme="filled" size="16" /></span>
+                    <div>
+                        <h2>图结构</h2>
+                        <p class="page-subtitle">LangGraph 双层图拓扑，含插件贡献的节点与子图</p>
+                    </div>
+                </div>
             </div>
             <GraphView ref="graphRef" inline />
         </div>
@@ -1574,8 +1585,23 @@ async function handleExportConfig() {
 .form-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 2px 0 14px;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+/* ── 卡片内分区区块（LLM 配置 / 功能开关） ── */
+.cfg-block {
+    background: #f8fafd;
+    border: 1px solid var(--border-light, #eef1f5);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+.cfg-block :deep(.el-form-item) {
+    margin-bottom: 12px;
+}
+.cfg-block :deep(.el-form-item:last-of-type) {
+    margin-bottom: 0;
 }
 
 /* ── 卡片内小节标题 ── */
@@ -1583,7 +1609,7 @@ async function handleExportConfig() {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 6px 0 4px;
+    margin: 0 0 8px;
 }
 .section-title {
     display: inline-flex;
@@ -1665,33 +1691,40 @@ async function handleExportConfig() {
     color: #f56c6c;
 }
 
-/* ── 配置折叠区 ── */
+/* ── 配置折叠区（圆角卡片条式折叠头） ── */
 .cfg-collapse {
     border: none;
     background: transparent;
-    margin-top: 8px;
+    margin-top: 4px;
 }
 .cfg-collapse :deep(.el-collapse-item__header) {
     height: 46px;
-    border-bottom: 1px solid var(--border-light, #e8eaed);
-    background: transparent;
-    transition: background-color 0.15s ease;
+    border: none;
+    background: var(--el-fill-color, #f5f8fc);
+    border-radius: 10px;
+    padding: 0 14px;
+    margin-bottom: 8px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 .cfg-collapse :deep(.el-collapse-item__header:hover) {
-    background: var(--el-fill-color-light, #f6f8fb);
+    background: var(--brand-50, #f0f6ff);
 }
 .cfg-collapse :deep(.el-collapse-item__header.is-active) {
+    background: var(--brand-50, #f0f6ff);
     color: var(--brand-600, #2b6dd9);
 }
+.cfg-collapse :deep(.el-collapse-item__header .el-collapse-item__arrow) {
+    color: var(--text-muted, #909399);
+}
 .cfg-collapse :deep(.el-collapse-item:last-of-type .el-collapse-item__header) {
-    border-bottom: none;
+    margin-bottom: 0;
 }
 .cfg-collapse :deep(.el-collapse-item__wrap) {
     border-bottom: none;
     background: transparent;
 }
 .cfg-collapse :deep(.el-collapse-item__content) {
-    padding-bottom: 20px;
+    padding: 4px 6px 20px;
     color: var(--text-primary, #1e2a3a);
 }
 .cfg-collapse-title {
@@ -1704,6 +1737,12 @@ async function handleExportConfig() {
 }
 .cfg-collapse-icon {
     color: var(--brand-500, #5d9eff);
+}
+.cfg-collapse-sub {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted, #909399);
+    margin-left: 4px;
 }
 
 /* ── 节点参数卡片 ── */
@@ -1725,7 +1764,7 @@ async function handleExportConfig() {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary, #1e2a3a);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 .node-card-icon {
     margin-right: 6px;
@@ -1733,10 +1772,14 @@ async function handleExportConfig() {
     flex-shrink: 0;
 }
 .node-card-id {
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--text-muted, #909399);
-    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #8a94a6;
+    background: #eef1f5;
+    border-radius: 20px;
+    padding: 1px 8px;
+    margin-left: 8px;
+    font-family: Consolas, Monaco, monospace;
 }
 .node-val {
     margin-left: 8px;
@@ -1761,9 +1804,11 @@ async function handleExportConfig() {
 
 /* ── 节点级 LLM 覆盖 ── */
 .node-llm {
-    margin-top: 4px;
-    border-top: 1px dashed var(--border-light, #e8eaed);
-    padding-top: 8px;
+    margin-top: 10px;
+    border: 1px solid #eef2f8;
+    background: #fbfcfe;
+    border-radius: 10px;
+    padding: 10px 12px;
 }
 .node-llm-head {
     display: flex;
@@ -2064,5 +2109,20 @@ async function handleExportConfig() {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+/* ── 窄屏：左右单列，图结构跟随文档流 ── */
+@media (max-width: 1080px) {
+    .config-layout {
+        flex-direction: column;
+    }
+    .config-left {
+        width: 100%;
+        flex-shrink: 1;
+    }
+    .config-right {
+        position: static;
+        width: 100%;
+    }
 }
 </style>

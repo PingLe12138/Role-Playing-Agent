@@ -247,6 +247,8 @@ def cancel_player_choice(data: dict):
 @router.get("/api/graph/topology")
 def get_graph_topology():
     from RPA_langGraph.director_subgraph import director_subgraph
+    from plugin_system import plugin_labels
+    from plugin_system.registry import registry as plugin_registry
 
     NODE_LABELS = {
         "supervisor_node": "用户输入分类",
@@ -290,6 +292,12 @@ def get_graph_topology():
         "image_gen_node": "llm",
     }
 
+    # Plugin-contributed nodes / sub-graphs join the label & type maps without
+    # overriding built-ins. / 插件贡献的节点/子图并入标签与类型映射，不覆盖内置项。
+    for _name, _lt in plugin_labels().items():
+        NODE_LABELS.setdefault(_name, _lt["label"])
+        NODE_TYPES.setdefault(_name, _lt["type"])
+
     def build_graph_data(graph, graph_id, title, parent=None):
         g = graph.get_graph().reid()
 
@@ -318,11 +326,19 @@ def get_graph_topology():
             result["parent"] = parent
         return result
 
-    return ok(
-        {
-            "graphs": [
-                build_graph_data(supervisor_graph, "supervisor", "Supervisor 图"),
-                build_graph_data(director_subgraph, "director", "Director 子图", parent="supervisor"),
-            ]
-        }
-    )
+    graphs = [
+        build_graph_data(supervisor_graph, "supervisor", "Supervisor 图"),
+        build_graph_data(director_subgraph, "director", "Director 子图", parent="supervisor"),
+    ]
+
+    # Standalone graphs contributed by plugins are appended (mount_to-based
+    # sub-graphs already appear inside their parent graph automatically).
+    # / 插件贡献的独立图追加到列表；mount_to 挂载的子图已自动出现在父图中。
+    for _spec in plugin_registry.graphs:
+        if _spec.compiled is None:
+            continue  # 未挂载（如 mount_to 指向不存在的图）→ 不展示
+        graphs.append(
+            build_graph_data(_spec.compiled, _spec.graph_id, _spec.title or _spec.graph_id, parent=_spec.parent)
+        )
+
+    return ok({"graphs": graphs})

@@ -223,6 +223,13 @@ def build_director_subgraph() -> StateGraph:
     builder.add_edge("memory_node", "image_gen_node")
     builder.add_edge("image_gen_node", END)
 
+    # Plugin contributions (nodes / edges / sub-graphs) are applied last, while
+    # the builder is still mutable. / 插件贡献（节点/边/子图）最后应用——此时
+    # builder 仍可改动。
+    from plugin_system import apply_plugins
+
+    apply_plugins(builder, "director")
+
     return builder
 
 
